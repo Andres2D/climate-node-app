@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { inquirerMenu, pause, readInput } = require("./helpers/inquirer");
+const { inquirerMenu, pause, readInput, listPlaces } = require("./helpers/inquirer");
 const Searchs = require("./models/searchs");
 
 const main = async() => {
@@ -10,19 +10,31 @@ const main = async() => {
         opt = await inquirerMenu();
         switch(opt) {
             case 1:
-                const place = await readInput('City: ');
-                await searchs.city(place);
+                const term = await readInput('City: ');
+                const places = await searchs.city(term);
+                const id = await listPlaces(places);
 
-                console.log('\nInformation about the city \n');
-                console.log('City: ');
-                console.log('Lat: ');
-                console.log('Lng: ');
-                console.log('Temp: ');
-                console.log('Min: ');
-                console.log('Max: ');
+                if(id === '0') continue;
+                const {name, lat, lng } = places.find( p => p.id === id);
+
+                // Save on DB
+                searchs.addHistory(name);
+                const {desc, temp, max, min} = await searchs.climate(lat, lng);
+
+                console.log('\nInformation about the city \n'.green);
+                console.log('City: ', name.green);
+                console.log('Lat: ', lat);
+                console.log('Lng: ', lng);
+                console.log('Temp: ', temp);
+                console.log('Min: ', min);
+                console.log('Max: ', max);
+                console.log('Description: ', desc.green);
                 break;
             case 2:
-                console.log('Loading history...');
+                searchs.capitalizeHistory.forEach((place, index) => {
+                    const idx = `${index + 1}.`.green;
+                    console.log(`${idx} ${place}`);
+                })
             break;
         }
 
