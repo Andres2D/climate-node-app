@@ -78,6 +78,8 @@ class Searchs {
         if(this.history.includes(place.toLowerCase())) {
             return;
         }
+
+        this.history = this.history.splice(0, 5);
         this.history.unshift(place.toLowerCase());
         this.saveDB();
     }
